@@ -43,9 +43,10 @@ networks:
 </pre>
 
 
-* Create a button in the cometa_front which opens a new tab with this kind of url with url_encoded values, which is used by the which is changed in the Session.js 
+* Create a button in the cometa_front which opens a new tab with below url, which is used by the changes in the Session.js 
 <pre> http://prod.cometa.gpu:8089/?host=178.63.8.217&port=4723&path=/&ssl=false&autoStart=true&capabilities=%7B%27platformName%27%3A%20%27Android%27%2C%20%27appium%3AdeviceName%27%3A%20%27emulator-5554%27%2C%20%27appium%3AautomationName%27%3A%20%27UiAutomator2%27%2C%20%27appium%3AplatformVersion%27%3A%20%2712.0%27%7D
 </pre>
+* Create a button in the cometa_front that opens a new tab with the URL below, which is utilized by the changes in Session.js
 * This URL consist below query parameter
     - host
     - port 

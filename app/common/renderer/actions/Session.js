@@ -1246,9 +1246,15 @@ function startInspector(attempts = 0) {
       const sslEnabled = getQueryParam("ssl");
       console.log('SSL Enabled', sslEnabled);
       if (sslEnabled==='true') {
-          document.getElementById('customServerSSL').click();
-          console.log('SSL input checked');
-      }
+          if (!document.getElementById('customServerSSL').checked)
+          {
+            document.getElementById('customServerSSL').click();
+            console.log('SSL input checked');  
+          }
+      } else if (document.getElementById('customServerSSL').checked) {
+            document.getElementById('customServerSSL').click();
+            console.log('SSL input unchecked');  
+      } 
       // Wait for textarea actions after clicking edit
       setTimeout(() => waitForSaveButton(), 100);
   } else {

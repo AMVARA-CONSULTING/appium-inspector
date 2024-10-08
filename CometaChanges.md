@@ -182,3 +182,9 @@ networks:
     +    startInspector();
     +});
     <pre>
+
+# Test your changes
+
+* Run ```docker-compose up```
+* Get inside container using VScode
+* run command ```npm run preview:browser```

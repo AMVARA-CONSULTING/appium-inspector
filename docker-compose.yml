@@ -1,0 +1,20 @@
+services:
+  # Use this command to have mutiple containers of ollama.ai
+  # docker-compose -f docker-compose_ai.yml up --scale ollama.ai=3
+  cometa.appium:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+    - "8089:80"
+    volumes:
+      - .:/app
+    working_dir: /app 
+    entrypoint: sleep infinity
+    networks:
+      - test
+    restart: always
+
+networks:
+  test:
+    driver: "bridge"

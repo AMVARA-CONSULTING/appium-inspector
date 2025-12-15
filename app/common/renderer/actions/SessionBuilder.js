@@ -98,6 +98,19 @@ const NEW_COMMAND_TIMEOUT_SEC = 3600;
 
 let isFirstRun = true; // we only want to auto start a session on a first run
 
+
+// Function to get query parameters from the URL
+function getQueryParam(param) {
+  const params = new URLSearchParams(window.location.search);
+  console.log(params)
+  return params.get(param);
+}
+
+export const DEFAULT_SERVER_PATH = getQueryParam('path') || '/';
+export const DEFAULT_SERVER_HOST = getQueryParam('host') || '127.0.0.1';
+export const DEFAULT_SERVER_PORT = getQueryParam('port') || 4723;
+const SAUCE_OPTIONS_CAP = 'sauce:options';
+
 const JSON_TYPES = ['object', 'number', 'boolean'];
 
 export function getCapsObject(caps) {
@@ -807,13 +820,22 @@ export function abortDesiredCapsEditor() {
   };
 }
 
-// Overwrite the current caps array with the raw data:
-// * New caps get a new id, type, and enabled state set to true;
-// * Existing caps keep their id and enabled state, but their type is updated.
-export function saveRawDesiredCaps(currentCapsArray, rawDesiredCaps) {
-  return (dispatch) => {
+function getCapabilitiesFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  let capabilities = params.get('capabilities')
+  console.log(capabilities);
+  if (capabilities){
+    return capabilities.replaceAll("'","\"");
+  }
+}
+
+export function saveRawDesiredCaps() {
+  return (dispatch, getState) => {
+    const state = getState().session;
+    const {rawDesiredCaps, caps: capsArray} = state;
+    let capabilities = getCapabilitiesFromURL();
     try {
-      const rawCapsObj = JSON.parse(rawDesiredCaps);
+      const newCaps = JSON.parse(capabilities || rawDesiredCaps);
 
       // Since the user may change the order of existing caps in the raw array,
       // we cannot use the element index - however, since the raw cap names are unique
@@ -983,3 +1005,73 @@ export function initFromQueryString(loadNewSession) {
     }
   };
 }
+
+// Function to wait for the textarea and perform the desired action
+function waitForSaveButton(attempts = 0) {
+  const saveButton = document.querySelector('button span[aria-label="save"]');
+  if (saveButton) {
+      saveButton.click();
+      console.log('Save button clicked');
+      const autoStart = getQueryParam("autoStart");
+      // autoStart is true then only start the session otherwise let user click in the Start Session button
+      if (autoStart==="true"){
+          setTimeout(() => {
+              const sessionButton = document.getElementById("btnStartSession");
+              if (sessionButton) {
+                  sessionButton.click();
+                  console.log('Session button Clicked.');
+              } else {
+                  console.log('Session button not found.');
+              }
+          }, 100);
+        }
+  } else {
+      console.log('Save button not found.');
+      if (attempts < 10) {
+          setTimeout(() => waitForTextAria(attempts + 1), 100); // Retry after 500ms
+      }
+  }
+}
+
+// Function to wait for the edit button and trigger actions
+function startInspector(attempts = 0) {
+  // There are few changes done in the Session.js which checks for capabilities values in the query parameter
+  // If capabilities exist in the query parameter then when save button is clicked it will load the value from query_parameter[capabilities]
+  // to save capabilities first edit button should be clicked
+  const editButton = document.querySelector('button span[aria-label="edit"]');
+
+  if (editButton) {
+      // Edit button found, perform the action
+      editButton.click();
+      console.log('Edit button found.');
+
+      const sslEnabled = getQueryParam("ssl");
+      console.log('SSL Enabled', sslEnabled);
+      if (sslEnabled==='true') {
+          if (!document.getElementById('customServerSSL').checked)
+          {
+            document.getElementById('customServerSSL').click();
+            console.log('SSL input checked');  
+          }
+      } else if (document.getElementById('customServerSSL').checked) {
+            document.getElementById('customServerSSL').click();
+            console.log('SSL input unchecked');  
+      } 
+      // Wait for textarea actions after clicking edit
+      setTimeout(() => waitForSaveButton(), 100);
+  } else {
+      // Edit button not found, retry if less than 10 attempts
+      if (attempts < 10) {
+          console.log('Edit button not found, retrying...');
+          setTimeout(() => startInspector(attempts + 1), 100); // Retry after 500ms
+      } else {
+          console.log('Edit button not found after 10 attempts.');
+      }
+  }
+}
+
+// Wait for the DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+  // Start waiting for the form elements to load
+    startInspector();
+});
